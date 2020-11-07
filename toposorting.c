@@ -5,91 +5,78 @@
 
 typedef struct node Node;
 struct node {
-  int succ;
-  Node *next;
+  int SUCC;
+  Node *NEXT;
 };
 
-void set_initial_array(int count[], int n, Node *list[]);
-
-void set_initial_array(int count[], int n, Node *list[]) {
-  for (int i = 0; i < n; i++) {
-    count[i] = 0;
-    list[i] = NULL;
-  }
-}
+void TOPOLOGICAL_SORT(int n);
 
 int main() {
-  int n, j, k;
-  char string[32];
+  int n;
   scanf("%d\n", &n);
-  int count[n];
-  Node *list[n];
-  set_initial_array(count, n, list); // fill count with 0 and list with NULL
+  TOPOLOGICAL_SORT(n);
+}
 
-  // store pairs in count and list
-  while (sscanf(fgets(string, 32, stdin), "%d %d", &j, &k)) {
-    if (j == 0 && k == 0) {
-      break;
-    } else {
-      count[k - 1]++;
-      if (list[j - 1] != NULL) {
-        Node *head = malloc(sizeof(Node));
-        head->succ = k;
-        head->next = list[j - 1];
-        list[j - 1] = head;
-      } else {
-        Node *head = malloc(sizeof(Node));
-        head->succ = k;
-        head->next = NULL;
-        list[j - 1] = head;
-      }
-    }
+void TOPOLOGICAL_SORT(int n) {
+  int COUNT[n];
+  Node *LIST[n];
+
+  // initializations
+  for (int k = 0; k < n; k++) {
+    COUNT[k] = 0;
+    LIST[k] = NULL;
+  }
+  int m = n;
+
+  // input
+  char string[1028];
+  int j, k;
+  sscanf(fgets(string, 1028, stdin), "%d %d", &j, &k);
+  while (j != 0) {
+    COUNT[k - 1]++;
+    Node *node = malloc(sizeof(Node));
+    node->SUCC = k;
+    node->NEXT = LIST[j - 1];
+    LIST[j - 1] = node;
+    sscanf(fgets(string, 1028, stdin), "%d %d", &j, &k);
   }
 
-  // initialize queue, start is front of queue, end is end of queue
-  int previous = 0, start, end;
+  // initialize output queue
+  int front = 0, rear;
   for (int i = 0; i < n; i++) {
-    if (count[i] == 0) {
-      if (previous == 0) {
-        start = i + 1;
-        previous = i + 1;
+    if (COUNT[i] == 0) {
+      if (front == 0) {
+        front = i + 1;
+        rear = i + 1;
       } else {
-        count[previous - 1] = i + 1;
-        previous = i + 1;
-        end = i + 1;
+        COUNT[rear - 1] = i + 1;
+        rear = i + 1;
       }
     }
   }
 
-  // output generation
-  while (true) {
-    Node qlink;
-    if (list[start - 1] != NULL) {
-      qlink = *list[start - 1];
-    } else {
-      for (int i = 0; i < n; i++) {
-        if (count[i] == 0) {
-          start = i + 1;
-          qlink = *list[i];
-        }
-      }
+  // Output objects
+  Node *node;
+  while (front != 0) {
+    printf("%d", front);
+    if (m > 1) {
+      printf(" ");
     }
-    printf("%d\n", start);
-    while (true) { // look through successors
-      count[qlink.succ - 1]--;
-      if (count[qlink.succ - 1] == 0) {
-        count[end - 1] = qlink.succ;
-        end = qlink.succ;
+    m--;
+    node = LIST[front - 1];
+    while (node != NULL) {
+      k = node->SUCC;
+      COUNT[k - 1]--;
+      if (COUNT[k - 1] == 0) {
+        COUNT[rear - 1] = k;
+        rear = k;
       }
-      if (qlink.next != NULL) {
-        qlink = *qlink.next;
-      } else {
-        break;
-      }
+      node = node->NEXT;
     }
-    start = count[start - 1];
-    if (start == 0) {
-      break;
-    }
+    front = COUNT[front - 1];
+  }
+  // Check for loops
+  if (m > 0) {
+    printf("%s", "Some objects comprise a loop");
   }
 }
